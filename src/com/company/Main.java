@@ -70,7 +70,9 @@ public class Main {
         tipo_simbolo.put("9", "num");
         Scanner sc = new Scanner(System.in);
         String contenido = "";
+        String buff="";
         boolean error= false;
+        boolean prev_token=false;
         int i = 0;
         int columna = 0;
         int fila = 0;
@@ -89,25 +91,138 @@ public class Main {
                 if(columna!=0)
                     columna++;
                 contenido = "";
+                prev_token=false;
+                buff = "";
                 String[] cadena = lexema.split("");
-                String identificador = "ID";
+                String identificador = "id";
                 for (String simbolo :
                         cadena) {
+                    prev_token=false;
                     columna++;
                     int next_state = delta(state, tipo_simbolo.get(simbolo));
                     state=next_state;
+
+
                     if (next_state != 0 ) {
+                        buff=contenido;
                         contenido += simbolo;
+
                     }
+
+                    //**IDENTIFICADOR**
+
                     if(next_state==2){
-                        identificador="ID";
+                        identificador="id";
                     }
+
+                    //**ENTERO**
                     if(next_state==3){
                         identificador="entero";
                     }
+
+
+
+                    //**REAL**
                     if(next_state==5){
                         identificador="real";
                     }
+
+                    //**ASIGNACION**
+                    if(next_state==7){
+                        if(buff.length()!=0) {
+                            columna = columna - buff.length();
+                            Token buff_t = new Token(columna, fila);
+                            buff_t.setContenido(buff);
+                            buff_t.setIdentificador(identificador);
+                            System.out.println(buff_t.toString());
+                            identificador="tk_assig";
+                            columna=columna+buff.length();
+                            contenido=simbolo;
+                            buff="";
+
+
+                    }
+                        identificador="tk_assig";
+
+                    }
+
+
+                    //**IGUAL**
+                    if(next_state==8){
+                        if(buff.length() != 0 && !buff.equals("=")) {
+                            columna = columna - buff.length();
+                            Token buff_t = new Token(columna, fila);
+                            buff_t.setContenido(buff);
+                            buff_t.setIdentificador(identificador);
+                            System.out.println(buff_t.toString());
+                            identificador="tk_igual";
+                            contenido=simbolo;
+                            columna=columna+buff.length();
+                            buff="";
+
+                        }
+                        identificador="tk_igual";
+
+                    }
+
+                    //**ENTERO CON BUFFER Y ERROR**
+                    if(next_state==9){
+
+                        Token t = new Token(columna, fila);
+                        t.setContenido(buff);
+                        t.setIdentificador(identificador);
+                        System.out.println(t.toString());
+                        printError(fila,columna);
+                        prev_token=true;
+                        error=true;
+                        break;
+                    }
+
+                    //**ENTERO CON BUFFER**
+                    if(next_state==10){
+
+                        Token t = new Token(columna-buff.length(), fila);
+                        t.setContenido(buff);
+                        t.setIdentificador(identificador);
+                        System.out.println(t.toString());
+                        contenido=simbolo;
+                        identificador="entero";
+                    }
+
+                    //**IDENTIFICADOR CON BUFFER**
+                    if(next_state==11){
+                        Token t = new Token(columna-buff.length(), fila);
+                        t.setContenido(buff);
+                        t.setIdentificador(identificador);
+                        System.out.println(t.toString());
+                        contenido=simbolo;
+                        identificador="id";
+                    }
+
+
+                    //**SUMA**
+                    if (next_state == 6) {
+                        if(buff.length()!=0) {
+                            columna = columna - buff.length();
+                            Token buff_t = new Token(columna, fila);
+                            buff_t.setContenido(buff);
+                            buff_t.setIdentificador(identificador);
+                            System.out.println(buff_t.toString());
+
+                        }
+                        columna=columna+buff.length();
+                        Token t = new Token(columna, fila);
+                        t.setContenido("+");
+                        identificador="tk_mas";
+                        t.setIdentificador(identificador);
+
+                        System.out.println(t.toString());
+                        contenido="";
+                        buff="";
+                        state=1;
+                        prev_token=true;
+                    }
+
 
                     if (next_state == 0) {
                         columna=columna-contenido.length()+1;
@@ -117,20 +232,66 @@ public class Main {
                         if (palabras_reservadas.contains(contenido))
                             t.setPalabra_reservada(true);
                         System.out.println(t.toString());
+                        contenido="";
+                        state=1;
                     }
-
+                    //**ERRORES Y ESTADOS DE NEGACION**
+                    if(state==-1){
+                        if(buff.length()!=0 && !prev_token ) {
+                            Token t = new Token(columna - contenido.length()+1, fila);
+                            t.setContenido(buff);
+                            t.setIdentificador(identificador);
+                            if (palabras_reservadas.contains(buff))
+                                t.setPalabra_reservada(true);
+                            System.out.println(t.toString());
+                            prev_token=true;
+                            printError(fila,columna );
+                        }else {
+                            printError(fila, columna );
+                        }
+                        error=true;
+                        break;
+                    }
                 }
-                if(state==-1||state==4){
-                    printError(fila,columna-contenido.length()+1);
+
+                //**ERRORES Y ESTADOS DE NEGACION**
+                if(state==-1){
+                    if(buff.length()!=0 && !prev_token ) {
+                        Token t = new Token(columna , fila);
+                        t.setContenido(buff);
+                        t.setIdentificador(identificador);
+                        if (palabras_reservadas.contains(buff))
+                            t.setPalabra_reservada(true);
+                        System.out.println(t.toString());
+                    }
+                    if(!error) {
+                        contenido = "";
+                        printError(fila, columna  + 1);
+                    }
                     error=true;
                     break;
                 }
-                Token t = new Token(columna-contenido.length()+1, fila);
+                if(state==4){
+                    Token t = new Token(columna-buff.length(), fila);
+                    t.setContenido(buff);
+                    t.setIdentificador(identificador);
+                    if (palabras_reservadas.contains(buff))
+                        t.setPalabra_reservada(true);
+                    System.out.println(t.toString());
+                    contenido="";
+                    state=1;
+                    printError(fila,columna-contenido.length());
+                    error=true;
+                    break;
+                }
+                if(!prev_token) {
+                        Token t = new Token(columna - contenido.length() + 1, fila);
                 t.setContenido(contenido);
                 t.setIdentificador(identificador);
                 if (palabras_reservadas.contains(contenido))
                     t.setPalabra_reservada(true);
                 System.out.println(t.toString());
+                }
             }
 
         }
@@ -148,7 +309,13 @@ public class Main {
                     return 3;
                 if (simbolo == "under_score")
                     return -1;
+                if (simbolo == "punto")
+                    return -1;
+                if (simbolo == "suma")
+                    return 6;
 
+                if (simbolo == "igual")
+                    return 7;
                 break;
             case 2:
                 if (simbolo == "letra")
@@ -157,8 +324,10 @@ public class Main {
                     return 2;
                 if (simbolo == "under_score")
                     return 2;
-                if (simbolo == "otra cosa")
-                    return 0;
+                if (simbolo == "igual")
+                    return 7;
+                if (simbolo == "suma")
+                    return 6;
                 if (simbolo == "punto")
                     return -1;
                 break;
@@ -169,16 +338,63 @@ public class Main {
                 if (simbolo == "punto")
                     return 4;
                 if (simbolo == "letra")
-                    return -1;
+                    return 9;
+                if (simbolo == "suma")
+                    return 6;
+                if(simbolo=="igual")
+                    return 7;
+
                 break;
             case 4:
-                if (simbolo == "num")
+                if (!(simbolo == "num"))
+                    return 9;
+                else
                     return 5;
-                if (simbolo == "letra")
-                    return -1;
             case 5:
                 if (simbolo == "num")
                     return 5;
+                if (simbolo == "suma")
+                    return 6;
+                if (simbolo == "letra")
+                    return 9;
+
+            case 6:
+                if(simbolo == "num")
+                    return 10;
+                if(simbolo == "punto")
+                    return -1;
+                if(simbolo=="letra")
+                    return 11;
+            case 7:
+                if (simbolo == "igual")
+                    return 8;
+                if (simbolo == "letra")
+                    return 11;
+                if (simbolo == "punto")
+                    return -1;
+            case 8:
+                if (simbolo == "num")
+                    return 10;
+                if (simbolo == "igual")
+                    return 7;
+                if(simbolo== "letra")
+                    return 11;
+                if (simbolo== "punto")
+                    return -1;
+            case 10:
+                if(simbolo=="num")
+                    return 3;
+                if (simbolo == "punto")
+                    return 4;
+            case 11:
+                if (simbolo=="under_score")
+                    return 2;
+                if (simbolo=="letra")
+                    return 2;
+                if (simbolo == "igual")
+                    return 7;
+
+
             default:
                 return -1;
         }
