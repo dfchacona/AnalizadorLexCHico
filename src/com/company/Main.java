@@ -27,6 +27,7 @@ public class Main {
         tipo_simbolo.put("n", "letra");
         tipo_simbolo.put("o", "letra");
         tipo_simbolo.put("p", "letra");
+        tipo_simbolo.put("q", "letra");
         tipo_simbolo.put("k", "letra");
         tipo_simbolo.put("r", "letra");
         tipo_simbolo.put("s", "letra");
@@ -72,185 +73,233 @@ public class Main {
         String contenido = "";
         String buff="";
         boolean error= false;
+        boolean comment_line= false;
+        boolean big_comment = false;
         boolean prev_token=false;
         int i = 0;
         int columna = 0;
         int fila = 0;
         int state=1;
         while (sc.hasNextLine()) {
-            if (error)
+            if (error )
                 break;
             String[] linea = sc.nextLine().split(" ");
             fila++;
+            comment_line = false;
             columna=0;
             for (String lexema :
                     linea) {
-                if (error)
+                if (error || comment_line)
                     break;
-                state=1;
+                if(state!=14)
+                    state=1;
                 if(columna!=0)
                     columna++;
                 contenido = "";
-                prev_token=false;
+                if(!big_comment)
+                    prev_token=false;
                 buff = "";
                 String[] cadena = lexema.split("");
                 String identificador = "id";
                 for (String simbolo :
                         cadena) {
-                    prev_token=false;
+                    if(!big_comment)
+                        prev_token=false;
                     columna++;
                     int next_state = delta(state, tipo_simbolo.get(simbolo));
                     state=next_state;
-
-
-                    if (next_state != 0 ) {
-                        buff=contenido;
-                        contenido += simbolo;
-
-                    }
-
-                    //**IDENTIFICADOR**
-
-                    if(next_state==2){
-                        identificador="id";
-                    }
-
-                    //**ENTERO**
-                    if(next_state==3){
-                        identificador="entero";
-                    }
-
-
-
-                    //**REAL**
-                    if(next_state==5){
-                        identificador="real";
-                    }
-
-                    //**ASIGNACION**
-                    if(next_state==7){
-                        if(buff.length()!=0) {
-                            columna = columna - buff.length();
-                            Token buff_t = new Token(columna, fila);
-                            buff_t.setContenido(buff);
-                            buff_t.setIdentificador(identificador);
-                            System.out.println(buff_t.toString());
-                            identificador="tk_assig";
-                            columna=columna+buff.length();
-                            contenido=simbolo;
-                            buff="";
-
-
-                    }
-                        identificador="tk_assig";
-
-                    }
-
-
-                    //**IGUAL**
-                    if(next_state==8){
-                        if(buff.length() != 0 && !buff.equals("=")) {
-                            columna = columna - buff.length();
-                            Token buff_t = new Token(columna, fila);
-                            buff_t.setContenido(buff);
-                            buff_t.setIdentificador(identificador);
-                            System.out.println(buff_t.toString());
-                            identificador="tk_igual";
-                            contenido=simbolo;
-                            columna=columna+buff.length();
-                            buff="";
+                    if (next_state==1)
+                        big_comment=false;
+                    if (!big_comment) {
+                        if (next_state != 0) {
+                            buff = contenido;
+                            contenido += simbolo;
 
                         }
-                        identificador="tk_igual";
 
-                    }
+                        //**IDENTIFICADOR**
 
-                    //**ENTERO CON BUFFER Y ERROR**
-                    if(next_state==9){
+                        if (next_state == 2) {
+                            identificador = "id";
+                        }
 
-                        Token t = new Token(columna, fila);
-                        t.setContenido(buff);
-                        t.setIdentificador(identificador);
-                        System.out.println(t.toString());
-                        printError(fila,columna);
-                        prev_token=true;
-                        error=true;
-                        break;
-                    }
-
-                    //**ENTERO CON BUFFER**
-                    if(next_state==10){
-
-                        Token t = new Token(columna-buff.length(), fila);
-                        t.setContenido(buff);
-                        t.setIdentificador(identificador);
-                        System.out.println(t.toString());
-                        contenido=simbolo;
-                        identificador="entero";
-                    }
-
-                    //**IDENTIFICADOR CON BUFFER**
-                    if(next_state==11){
-                        Token t = new Token(columna-buff.length(), fila);
-                        t.setContenido(buff);
-                        t.setIdentificador(identificador);
-                        System.out.println(t.toString());
-                        contenido=simbolo;
-                        identificador="id";
-                    }
+                        //**ENTERO**
+                        if (next_state == 3) {
+                            identificador = "entero";
+                        }
 
 
-                    //**SUMA**
-                    if (next_state == 6) {
-                        if(buff.length()!=0) {
-                            columna = columna - buff.length();
-                            Token buff_t = new Token(columna, fila);
-                            buff_t.setContenido(buff);
-                            buff_t.setIdentificador(identificador);
-                            System.out.println(buff_t.toString());
+                        //**REAL**
+                        if (next_state == 5) {
+                            identificador = "real";
+                        }
+
+                        //**ASIGNACION**
+                        if (next_state == 7) {
+                            if (buff.length() != 0) {
+                                columna = columna - buff.length();
+                                Token buff_t = new Token(columna, fila);
+                                buff_t.setContenido(buff);
+                                buff_t.setIdentificador(identificador);
+                                System.out.println(buff_t.toString());
+                                identificador = "tk_assig";
+                                columna = columna + buff.length();
+                                contenido = simbolo;
+                                buff = "";
+
+
+                            }
+                            identificador = "tk_assig";
 
                         }
-                        columna=columna+buff.length();
-                        Token t = new Token(columna, fila);
-                        t.setContenido("+");
-                        identificador="tk_mas";
-                        t.setIdentificador(identificador);
-
-                        System.out.println(t.toString());
-                        contenido="";
-                        buff="";
-                        state=1;
-                        prev_token=true;
-                    }
 
 
-                    if (next_state == 0) {
-                        columna=columna-contenido.length()+1;
-                        Token t = new Token(columna, fila);
-                        t.setContenido(contenido);
-                        t.setIdentificador(identificador);
-                        if (palabras_reservadas.contains(contenido))
-                            t.setPalabra_reservada(true);
-                        System.out.println(t.toString());
-                        contenido="";
-                        state=1;
-                    }
-                    //**ERRORES Y ESTADOS DE NEGACION**
-                    if(state==-1){
-                        if(buff.length()!=0 && !prev_token ) {
-                            Token t = new Token(columna - contenido.length()+1, fila);
+                        //**IGUAL**
+                        if (next_state == 8) {
+                            if (buff.length() != 0 && !buff.equals("=")) {
+                                columna = columna - buff.length();
+                                Token buff_t = new Token(columna, fila);
+                                buff_t.setContenido(buff);
+                                buff_t.setIdentificador(identificador);
+                                System.out.println(buff_t.toString());
+                                identificador = "tk_igual";
+                                contenido = simbolo;
+                                columna = columna + buff.length();
+                                buff = "";
+
+                            }
+                            identificador = "tk_igual";
+
+                        }
+
+                        //**ENTERO CON BUFFER Y ERROR**
+                        if (next_state == 9) {
+
+                            Token t = new Token(columna, fila);
                             t.setContenido(buff);
                             t.setIdentificador(identificador);
-                            if (palabras_reservadas.contains(buff))
+                            System.out.println(t.toString());
+                            printError(fila, columna);
+                            prev_token = true;
+                            error = true;
+                            break;
+                        }
+
+                        //**ENTERO CON BUFFER**
+                        if (next_state == 10) {
+
+                            Token t = new Token(columna - buff.length(), fila);
+                            t.setContenido(buff);
+                            t.setIdentificador(identificador);
+                            System.out.println(t.toString());
+                            contenido = simbolo;
+                            identificador = "entero";
+                        }
+
+                        //**IDENTIFICADOR CON BUFFER**
+                        if (next_state == 11) {
+                            Token t = new Token(columna - buff.length(), fila);
+                            t.setContenido(buff);
+                            t.setIdentificador(identificador);
+                            System.out.println(t.toString());
+                            contenido = simbolo;
+                            identificador = "id";
+                        }
+
+
+                        //**SUMA**
+                        if (next_state == 6) {
+                            if (buff.length() != 0) {
+                                columna = columna - buff.length();
+                                Token buff_t = new Token(columna, fila);
+                                buff_t.setContenido(buff);
+                                buff_t.setIdentificador(identificador);
+                                System.out.println(buff_t.toString());
+
+                            }
+                            columna = columna + buff.length();
+                            Token t = new Token(columna, fila);
+                            t.setContenido("+");
+                            identificador = "tk_mas";
+                            t.setIdentificador(identificador);
+
+                            System.out.println(t.toString());
+                            contenido = "";
+                            buff = "";
+                            state = 1;
+                            prev_token = true;
+                        }
+
+                        //**DIVISION**
+                        if (next_state == 12) {
+                            if (buff.length() != 0) {
+                                columna = columna - buff.length();
+                                Token buff_t = new Token(columna, fila);
+                                buff_t.setContenido(buff);
+                                buff_t.setIdentificador(identificador);
+                                System.out.println(buff_t.toString());
+                                identificador = "tk_division";
+                                columna = columna + buff.length();
+                                contenido = simbolo;
+                                buff = "";
+
+
+                            }
+                            identificador = "tk_division";
+
+                        }
+
+                        //**COMENTARIO**
+                        if (next_state == 13) {
+                            if (buff.length() != 0 && !buff.equals("/")) {
+
+
+                                contenido = simbolo;
+                                columna = columna + buff.length();
+                                buff = "";
+                                prev_token = true;
+                                comment_line = true;
+                                break;
+
+                            }
+
+
+                        }
+
+                        //**COMENTARIO LARGO**
+                        if (next_state == 14) {
+                            big_comment = true;
+                            prev_token = true;
+
+                        }
+                        if (next_state == 0) {
+                            columna = columna - contenido.length() + 1;
+                            Token t = new Token(columna, fila);
+                            t.setContenido(contenido);
+                            t.setIdentificador(identificador);
+                            if (palabras_reservadas.contains(contenido))
                                 t.setPalabra_reservada(true);
                             System.out.println(t.toString());
-                            prev_token=true;
-                            printError(fila,columna );
-                        }else {
-                            printError(fila, columna );
+                            contenido = "";
+                            state = 1;
                         }
-                        error=true;
-                        break;
+                        //**ERRORES Y ESTADOS DE NEGACION**
+                        if (state == -1) {
+                            if (buff.length() != 0 && !prev_token) {
+                                Token t = new Token(columna - contenido.length() + 1, fila);
+                                t.setContenido(buff);
+                                t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    t.setPalabra_reservada(true);
+                                System.out.println(t.toString());
+                                prev_token = true;
+                                printError(fila, columna);
+                            } else {
+                                printError(fila, columna);
+                            }
+                            error = true;
+                            break;
+                        }
                     }
                 }
 
@@ -275,6 +324,10 @@ public class Main {
                 //**ESPACIOS VACIOS**
                 if (state==-2)
                     columna--;
+
+                //**ESPACIOS VACIOS**
+                if (state==14)
+                    big_comment=true;
 
                 if(state==4){
                     Token t = new Token(columna-buff.length(), fila);
@@ -313,12 +366,13 @@ public class Main {
             }
         }
         catch(NullPointerException e) {
-
+                //**ESPACIOS VACIOS**
                     return -2;
                 }
 
 
         switch (state) {
+            //**ESTADO INICIAL**
             case 1:
                 if (simbolo == "letra")
                     return 2;
@@ -333,7 +387,10 @@ public class Main {
 
                 if (simbolo == "igual")
                     return 7;
+                if (simbolo == "division")
+                    return 12;
                 break;
+            //**IDENTIFICADOR**
             case 2:
                 if (simbolo == "letra")
                     return 2;
@@ -347,8 +404,10 @@ public class Main {
                     return 6;
                 if (simbolo == "punto")
                     return -1;
+                if (simbolo == "division")
+                    return 12;
                 break;
-
+            //**ENTERO**
             case 3:
                 if (simbolo == "num")
                     return 3;
@@ -360,13 +419,14 @@ public class Main {
                     return 6;
                 if(simbolo=="igual")
                     return 7;
-
                 break;
+            //**ENTRE ENTERO Y REAL**
             case 4:
                 if (!(simbolo == "num"))
                     return 9;
                 else
                     return 5;
+            //**REAL**
             case 5:
                 if (simbolo == "num")
                     return 5;
@@ -374,7 +434,7 @@ public class Main {
                     return 6;
                 if (simbolo == "letra")
                     return 9;
-
+            //**TK_MAS**
             case 6:
                 if(simbolo == "num")
                     return 10;
@@ -382,6 +442,7 @@ public class Main {
                     return -1;
                 if(simbolo=="letra")
                     return 11;
+            //**TK_ASSIG**
             case 7:
                 if (simbolo == "igual")
                     return 8;
@@ -389,6 +450,7 @@ public class Main {
                     return 11;
                 if (simbolo == "punto")
                     return -1;
+            //**TK_IGUAL**
             case 8:
                 if (simbolo == "num")
                     return 10;
@@ -398,11 +460,13 @@ public class Main {
                     return 11;
                 if (simbolo== "punto")
                     return -1;
+            //**ENTERO BUFFER**
             case 10:
                 if(simbolo=="num")
                     return 3;
                 if (simbolo == "punto")
                     return 4;
+            //**IDENTIFICADOR BUFFER**
             case 11:
                 if (simbolo=="under_score")
                     return 2;
@@ -410,6 +474,25 @@ public class Main {
                     return 2;
                 if (simbolo == "igual")
                     return 7;
+            //**TK_DIV**
+            case 12:
+                if (simbolo=="division")
+                    return 13;
+                if (simbolo=="multiplicacion")
+                    return 14;
+            //**ESTADOS PARA LOS COMENTARIOS**
+            case 13:
+                return 13;
+            case 14:
+                if (simbolo=="multiplicacion")
+                    return 15;
+                else
+                    return 14;
+            case 15:
+                if(simbolo=="division")
+                    return 1;
+                else
+                    return 14;
 
 
             default:
@@ -487,3 +570,4 @@ public class Main {
 
     }
 }
+
