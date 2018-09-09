@@ -71,6 +71,7 @@ public class Main {
         tipo_simbolo.put("9", "num");
         Scanner sc = new Scanner(System.in);
         String contenido = "";
+        String buff_2="";
         String buff="";
         boolean error= false;
         boolean comment_line= false;
@@ -98,6 +99,7 @@ public class Main {
                 contenido = "";
                 if(!big_comment)
                     prev_token=false;
+                buff_2 = "";
                 buff = "";
                 String[] cadena = lexema.split("");
                 String identificador = "id";
@@ -112,6 +114,7 @@ public class Main {
                         big_comment=false;
                     if (!big_comment) {
                         if (next_state != 0) {
+                            buff_2 = buff;
                             buff = contenido;
                             contenido += simbolo;
 
@@ -175,7 +178,7 @@ public class Main {
                         //**ENTERO CON BUFFER Y ERROR**
                         if (next_state == 9) {
 
-                            Token t = new Token(columna, fila);
+                            Token t = new Token(columna-buff.length(), fila);
                             t.setContenido(buff);
                             t.setIdentificador(identificador);
                             System.out.println(t.toString());
@@ -272,6 +275,62 @@ public class Main {
                             prev_token = true;
 
                         }
+
+                        //**PUNTO**
+                        if (next_state == 16) {
+                            if (buff.length() != 0) {
+                                columna = columna - buff.length();
+                                Token buff_t = new Token(columna, fila);
+                                buff_t.setContenido(buff);
+                                buff_t.setIdentificador(identificador);
+                                System.out.println(buff_t.toString());
+                                identificador = "tk_punto";
+                                columna = columna + buff.length();
+                                contenido = simbolo;
+                                buff = "";
+
+
+                            }
+                            identificador = "tk_punto";
+
+                        }
+                        //**PUNTO**
+                        if (next_state == 17) {
+                            if (buff_2.length() != 0) {
+
+                                Token buff_t = new Token(columna - buff_2.length() - 1, fila);
+                                buff_t.setContenido(buff_2);
+                                buff_t.setIdentificador(identificador);
+                                System.out.println(buff_t.toString());
+
+
+                                contenido = simbolo;
+                                buff = "";
+                                buff_2 = "";
+                            }
+
+                            Token t = new Token(columna - 1, fila);
+                            t.setContenido(".");
+                            t.setIdentificador("tk_punto");
+                            System.out.println(t.toString());
+                            if (tipo_simbolo.get(simbolo) == "letra") {
+                                identificador = "id";
+                                state = 2;
+                            } else {if (tipo_simbolo.get(simbolo) == "division") {
+                                identificador = "division";
+                                state = 12;
+                            } else {
+                                state = 1;
+                            }
+
+
+                            }
+
+
+                        }
+                        //**PUNTO DESPUES DE NUMERO**
+
+
                         if (next_state == 0) {
                             columna = columna - contenido.length() + 1;
                             Token t = new Token(columna, fila);
@@ -283,6 +342,7 @@ public class Main {
                             contenido = "";
                             state = 1;
                         }
+
                         //**ERRORES Y ESTADOS DE NEGACION**
                         if (state == -1) {
                             if (buff.length() != 0 && !prev_token) {
@@ -325,22 +385,24 @@ public class Main {
                 if (state==-2)
                     columna--;
 
-                //**ESPACIOS VACIOS**
+                //**COMENTARIO LARGO**
                 if (state==14)
                     big_comment=true;
 
                 if(state==4){
-                    Token t = new Token(columna-buff.length(), fila);
-                    t.setContenido(buff);
-                    t.setIdentificador(identificador);
+                    Token b = new Token(columna-buff.length(), fila);
+                    b.setContenido(buff);
+                    b.setIdentificador(identificador);
                     if (palabras_reservadas.contains(buff))
-                        t.setPalabra_reservada(true);
+                        b.setPalabra_reservada(true);
+                    System.out.println(b.toString());
+                    Token t = new Token(columna - buff.length()+1, fila);
+                    t.setContenido(".");
+                    t.setIdentificador("tk_punto");
                     System.out.println(t.toString());
-                    contenido="";
-                    state=1;
-                    printError(fila,columna-contenido.length());
-                    error=true;
-                    break;
+                    prev_token=true;
+
+
                 }
                 if(!prev_token && state!=-2) {
                         Token t = new Token(columna - contenido.length() + 1, fila);
@@ -381,7 +443,7 @@ public class Main {
                 if (simbolo == "under_score")
                     return -1;
                 if (simbolo == "punto")
-                    return -1;
+                    return 16;
                 if (simbolo == "suma")
                     return 6;
 
@@ -403,7 +465,7 @@ public class Main {
                 if (simbolo == "suma")
                     return 6;
                 if (simbolo == "punto")
-                    return -1;
+                    return 16;
                 if (simbolo == "division")
                     return 12;
                 break;
@@ -414,18 +476,25 @@ public class Main {
                 if (simbolo == "punto")
                     return 4;
                 if (simbolo == "letra")
-                    return 9;
+                    return 11;
                 if (simbolo == "suma")
                     return 6;
                 if(simbolo=="igual")
                     return 7;
+                if(simbolo=="division")
+                    return 12;
                 break;
             //**ENTRE ENTERO Y REAL**
             case 4:
-                if (!(simbolo == "num"))
-                    return 9;
-                else
+                if (simbolo=="letra")
+                    return 17;
+                if (simbolo=="punto")
+                    return 17;
+                if (simbolo == "num")
                     return 5;
+                if(simbolo == "division")
+                    return 17;
+                break;
             //**REAL**
             case 5:
                 if (simbolo == "num")
@@ -433,13 +502,13 @@ public class Main {
                 if (simbolo == "suma")
                     return 6;
                 if (simbolo == "letra")
-                    return 9;
+                    return 11;
             //**TK_MAS**
             case 6:
                 if(simbolo == "num")
                     return 10;
                 if(simbolo == "punto")
-                    return -1;
+                    return 16;
                 if(simbolo=="letra")
                     return 11;
             //**TK_ASSIG**
@@ -449,7 +518,7 @@ public class Main {
                 if (simbolo == "letra")
                     return 11;
                 if (simbolo == "punto")
-                    return -1;
+                    return 16;
             //**TK_IGUAL**
             case 8:
                 if (simbolo == "num")
@@ -459,25 +528,35 @@ public class Main {
                 if(simbolo== "letra")
                     return 11;
                 if (simbolo== "punto")
-                    return -1;
+                    return 16;
             //**ENTERO BUFFER**
             case 10:
                 if(simbolo=="num")
                     return 3;
                 if (simbolo == "punto")
                     return 4;
+                if(simbolo=="letra")
+                    return 11;
             //**IDENTIFICADOR BUFFER**
             case 11:
                 if (simbolo=="under_score")
                     return 2;
                 if (simbolo=="letra")
                     return 2;
+                if (simbolo=="num")
+                    return 2;
                 if (simbolo == "igual")
                     return 7;
+                if (simbolo=="punto")
+                    return 16;
             //**TK_DIV**
             case 12:
                 if (simbolo=="division")
                     return 13;
+                if (simbolo=="num")
+                    return 10;
+                if (simbolo=="punto")
+                    return 16;
                 if (simbolo=="multiplicacion")
                     return 14;
             //**ESTADOS PARA LOS COMENTARIOS**
@@ -494,7 +573,20 @@ public class Main {
                 else
                     return 14;
 
-
+            //**TK_PUNTO**
+            case 16:
+                if(simbolo == "num")
+                    return 10;
+                if(simbolo == "punto")
+                    return 16;
+                if(simbolo=="letra")
+                    return 11;
+                if(simbolo=="igual")
+                    return 7;
+                if (simbolo=="division")
+                    return 12;
+                if(simbolo=="suma")
+                    return 6;
             default:
                 return -1;
         }
