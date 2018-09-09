@@ -271,6 +271,11 @@ public class Main {
                     error=true;
                     break;
                 }
+
+                //**ESPACIOS VACIOS**
+                if (state==-2)
+                    columna--;
+
                 if(state==4){
                     Token t = new Token(columna-buff.length(), fila);
                     t.setContenido(buff);
@@ -284,7 +289,7 @@ public class Main {
                     error=true;
                     break;
                 }
-                if(!prev_token) {
+                if(!prev_token && state!=-2) {
                         Token t = new Token(columna - contenido.length() + 1, fila);
                 t.setContenido(contenido);
                 t.setIdentificador(identificador);
@@ -301,6 +306,18 @@ public class Main {
     }
 
     public static int delta(int state, String simbolo) {
+
+        try {
+            if (simbolo.hashCode() == 0) {
+                return state;
+            }
+        }
+        catch(NullPointerException e) {
+
+                    return -2;
+                }
+
+
         switch (state) {
             case 1:
                 if (simbolo == "letra")
