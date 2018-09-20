@@ -8,9 +8,10 @@ public class Main {
     public static void main(String[] args) {
         ArrayList<String> palabras_reservadas = new ArrayList<String>(
                 Arrays.asList("funcion_principal", "fin_principal", "funcion", "entero", "hacer", "retornar", "imprimir", "leer", "real", "caracter", "booleano",
-                        "cadena", "si", "entonces", "si_no", "fin_si", "mientras", "fin_mientras", "para", "fin_para", "seleccionar", "entre", "caso", "romper"
-                        , "fin_seleccionar", "estructura", "fin_estructura", "funcion", "fin_funcion", "verdadero", "falso"));
+                        "cadena", "si", "entonces", "si_no", "fin_si", "mientras", "fin_mientras","para", "fin_para", "seleccionar", "entre", "caso", "romper"
+                        , "fin_seleccionar", "estructura", "fin_estructura", "funcion", "fin_funcion", "verdadero", "falso", "defecto"));
         HashMap<String, String> tipo_simbolo = new HashMap<>();
+
         tipo_simbolo.put("a", "letra");
         tipo_simbolo.put("b", "letra");
         tipo_simbolo.put("c", "letra");
@@ -28,7 +29,7 @@ public class Main {
         tipo_simbolo.put("o", "letra");
         tipo_simbolo.put("p", "letra");
         tipo_simbolo.put("q", "letra");
-        tipo_simbolo.put("k", "letra");
+
         tipo_simbolo.put("r", "letra");
         tipo_simbolo.put("s", "letra");
         tipo_simbolo.put("t", "letra");
@@ -38,6 +39,34 @@ public class Main {
         tipo_simbolo.put("x", "letra");
         tipo_simbolo.put("y", "letra");
         tipo_simbolo.put("z", "letra");
+        tipo_simbolo.put("A", "letra");
+        tipo_simbolo.put("B", "letra");
+        tipo_simbolo.put("C", "letra");
+        tipo_simbolo.put("D", "letra");
+        tipo_simbolo.put("E", "letra");
+        tipo_simbolo.put("F", "letra");
+        tipo_simbolo.put("G", "letra");
+        tipo_simbolo.put("H", "letra");
+        tipo_simbolo.put("I", "letra");
+        tipo_simbolo.put("J", "letra");
+        tipo_simbolo.put("K", "letra");
+        tipo_simbolo.put("L", "letra");
+        tipo_simbolo.put("M", "letra");
+        tipo_simbolo.put("N", "letra");
+        tipo_simbolo.put("O", "letra");
+        tipo_simbolo.put("P", "letra");
+        tipo_simbolo.put("Q", "letra");
+
+        tipo_simbolo.put("R", "letra");
+        tipo_simbolo.put("S", "letra");
+        tipo_simbolo.put("T", "letra");
+        tipo_simbolo.put("U", "letra");
+        tipo_simbolo.put("V", "letra");
+        tipo_simbolo.put("W", "letra");
+        tipo_simbolo.put("X", "letra");
+        tipo_simbolo.put("Y", "letra");
+        tipo_simbolo.put("Z", "letra");
+
         tipo_simbolo.put("+", "suma");
         tipo_simbolo.put("-", "resta");
         tipo_simbolo.put("*", "multiplicacion");
@@ -75,38 +104,40 @@ public class Main {
         String buff_2="";
         String buff="";
         String identificador="";
-        boolean error= false;
-        boolean comment_line= false;
-        boolean big_comment = false;
-        boolean prev_token=false;
-        boolean tab=false;
+        //Inicializar las variables
+        boolean error= false;           //true si hubo un error en el procesamiento
+        boolean comment_line= false;    //true cuando hubo un comentario de linea
+        boolean big_comment = false;    //true si estoy en un comentario largo
+        boolean prev_token=false;       //true si se limpio el buffer antes de terminar una linea
+        boolean tab=false;              //true si es un espacio empezando fila
         int i = 0;
         int columna = 0;
         int fila = 0;
-
         int state=1;
         while (sc.hasNextLine()) {
+            //Si sucedio un error
             if (error )
                 break;
             String[] linea = sc.nextLine().split(" ");
 
-            fila++;
-            comment_line = false;
-            columna=0;
+            fila++;                  //aumento de columna
+            comment_line = false;    //terminacion de comentario de linea
+
+            columna=0;               //reset de la columna
             for (String lexema :
                     linea) {
 
-                if (error || comment_line)
+                if (error || comment_line)      //si ya hubo un error o empezo un comentario de linea
                     break;
-                if(columna!=0&&!tab)
+                if(columna!=0&&!tab)            //si no esta empezando la linea (porque en ese caso ocurrio un espacio)
                     columna++;
-                if(state!=14 && state!=41 && state!=25)
-                    state=1;
-                if(state!=41)
+                if(state!=14 && state!=41 && state!=25) //Si no estoy dentro un comentario ni un tk_cadena
+                    state=1;                            // reset del estado
+                if(state!=41)                           //Si estoy dentro de un tk_cadena y ocurrio un espacio, debo seguir almacenando el contenido
                     contenido = "";
-                if(state==41)
+                if(state==41)                           //Si estoy dentro de un tk_cadena debo añadir un espacio al contenido
                     contenido+=" ";
-                if(!big_comment)
+                if(!big_comment)                        //Si no estoy dentro de un comentario largo
                     prev_token=false;
                 buff_2 = "";
                 buff = "";
@@ -122,9 +153,9 @@ public class Main {
 
                     if(!big_comment)
                         prev_token=false;
-                    if(next_state==-2&&columna==0)
+                    if(next_state==-2&&columna==0)  //Si es un espacio
                         tab=true;
-                    if(next_state!=-2&&tab)
+                    if(next_state!=-2&&tab)         //cuando se acaban los tabs
                         tab=false;
                     columna++;
 
@@ -135,7 +166,7 @@ public class Main {
                         big_comment=false;
                     if (!big_comment ) {
                         if (next_state != 0) {
-                            buff_2 = buff;
+                            buff_2 = buff;         //Buffer del buffer
                             buff = contenido;
                             contenido += simbolo;
 
@@ -171,13 +202,13 @@ public class Main {
 
                         //**ENTERO**
                         if (next_state == 3) {
-                            identificador = "entero";
+                            identificador = "tk_entero";
                         }
 
 
                         //**REAL**
                         if (next_state == 5) {
-                            identificador = "real";
+                            identificador = "tk_real";
                         }
 
                         //**ASIGNACION**
@@ -185,7 +216,8 @@ public class Main {
                             if (buff.length() != 0) {
                                 columna = columna - buff.length();
                                 Token buff_t = new Token(columna, fila);
-
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
                                 System.out.println(buff_t.toString());
@@ -208,6 +240,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_igual";
@@ -228,6 +262,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_mayor";
@@ -249,6 +285,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_mayor_igual";
@@ -268,6 +306,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_menor";
@@ -289,7 +329,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
-
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_menor_igual";
                                 contenido = simbolo;
@@ -308,6 +349,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_neg";
@@ -329,6 +372,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_dif";
                                 contenido = simbolo;
@@ -347,7 +392,9 @@ public class Main {
                             Token t = new Token(columna - buff.length(), fila);
                             t.setContenido(buff);
                             t.setIdentificador(identificador);
-                            if(identificador=="id"||identificador=="entero"||identificador=="real")
+                            if (palabras_reservadas.contains(buff))
+                                t.setPalabra_reservada(true);
+                            if(identificador=="id"||identificador=="tk_entero"||identificador=="tk_real")
                                t.token=false;
                             System.out.println(t.toString());
                             printError(fila, columna);
@@ -362,10 +409,12 @@ public class Main {
                             Token t = new Token(columna - buff.length(), fila);
                             t.setContenido(buff);
                             t.setIdentificador(identificador);
+                            if (palabras_reservadas.contains(buff))
+                                t.setPalabra_reservada(true);
 
                             System.out.println(t.toString());
                             contenido = simbolo;
-                            identificador = "entero";
+                            identificador = "tk_entero";
                         }
 
                         //**IDENTIFICADOR CON BUFFER**
@@ -373,6 +422,8 @@ public class Main {
                             Token t = new Token(columna - buff.length(), fila);
                             t.setContenido(buff);
                             t.setIdentificador(identificador);
+                            if (palabras_reservadas.contains(buff))
+                                t.setPalabra_reservada(true);
 
                             System.out.println(t.toString());
                             contenido = simbolo;
@@ -386,6 +437,8 @@ public class Main {
                                 columna = columna - buff.length();
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 buff_t.setIdentificador(identificador);
                                 System.out.println(buff_t.toString());
@@ -411,6 +464,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_division";
@@ -458,6 +513,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
 
@@ -479,6 +536,8 @@ public class Main {
                                 Token buff_t = new Token(columna - buff_2.length() - 1, fila);
                                 buff_t.setContenido(buff_2);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
 
@@ -496,6 +555,10 @@ public class Main {
                             if (tipo_simbolo.get(simbolo) == "letra") {
                                 identificador = "id";
                                 state = 2;
+                            }
+                            if (tipo_simbolo.get(simbolo) == "punto") {
+                                identificador = "tk_punto";
+                                state = 16;
                             }
                             if (tipo_simbolo.get(simbolo) == "division") {
                                 identificador = "tk_div";
@@ -570,6 +633,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_menos";
@@ -590,6 +655,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_dosp";
@@ -608,6 +675,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_pyc";
@@ -628,6 +697,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_par_izq";
@@ -648,6 +719,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_y";
@@ -675,6 +748,8 @@ public class Main {
 
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_o";
                                 columna = columna + buff.length();
@@ -699,6 +774,8 @@ public class Main {
                             if (buff.length() != 0) {
                                 columna = columna - buff.length();
                                 Token buff_t = new Token(columna, fila);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
 
@@ -720,6 +797,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
                                 System.out.println(buff_t.toString());
 
                                 identificador = "tk_coma";
@@ -737,9 +816,12 @@ public class Main {
                         if (next_state == 24) {
                             if (buff.length() != 0) {
                                 columna = columna - buff.length();
+
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
 
@@ -760,6 +842,8 @@ public class Main {
                                 Token buff_t = new Token(columna-contenido.length()+1, fila);
                                 buff_t.setContenido(contenido);
                                 buff_t.setIdentificador(identificador);
+                            if (palabras_reservadas.contains(buff))
+                                buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
 
@@ -780,6 +864,8 @@ public class Main {
                             Token buff_t = new Token(columna-contenido.length()+1, fila);
                             buff_t.setContenido(contenido);
                             buff_t.setIdentificador(identificador);
+                            if (palabras_reservadas.contains(buff))
+                                buff_t.setPalabra_reservada(true);
 
                             System.out.println(buff_t.toString());
 
@@ -800,6 +886,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
                                 System.out.println(buff_t.toString());
 
                                 identificador = "tk_cadena";
@@ -820,6 +908,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_mod";
@@ -839,6 +929,8 @@ public class Main {
                                 Token buff_t = new Token(columna, fila);
                                 buff_t.setContenido(buff);
                                 buff_t.setIdentificador(identificador);
+                                if (palabras_reservadas.contains(buff))
+                                    buff_t.setPalabra_reservada(true);
 
                                 System.out.println(buff_t.toString());
                                 identificador = "tk_mult";
@@ -1649,7 +1741,7 @@ public class Main {
                     columna +
                     ">" ;
         }else{
-            if(identificador!=("id") && identificador!=("entero") && identificador!=("real")  && identificador!=("tk_char") && identificador!=("tk_cadena")){
+            if(identificador!=("id") && identificador!=("tk_entero") && identificador!=("tk_real")  && identificador!=("tk_char") && identificador!=("tk_cadena")){
                 return "<" +
                         identificador +
                         "," +
